@@ -11,12 +11,14 @@ jobs:
     timeout-minutes: 30
     steps:
     - name: Install Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ matrix.go-versions }}
         check-latest: true
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
+      with:
+        ref: ${{ github.event_name == 'push' && github.ref_name == 'main' && 'master' || github.ref }}
     - name: Run presubmit checks
       run: |
         source ${{ matrix.environment-variables }}
@@ -38,7 +40,9 @@ jobs:
     timeout-minutes: 30
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
+      with:
+        ref: ${{ github.event_name == 'push' && github.ref_name == 'main' && 'master' || github.ref }}
     - name: Run integration tests
       env:
         GOLANG_VERSION: ${{ matrix.go-versions }}
@@ -47,7 +51,7 @@ jobs:
         source ${{ matrix.environment-variables }}
         make docker-test-integration
     - name: Upload cAdvisor log file
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: failure()
       with:
         name: cadvisor.log
